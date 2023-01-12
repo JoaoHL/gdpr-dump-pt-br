@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 UNAME := $(shell uname)
-DOCKER_COMPOSE := docker compose
+DOCKER_COMPOSE := docker-compose
 PHP_CLI := $(DOCKER_COMPOSE) run --rm app
 
 .PHONY: help
