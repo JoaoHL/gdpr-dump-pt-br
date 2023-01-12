@@ -1,19 +1,12 @@
 parameters:
     level: 8
     paths:
+        - app
         - bin
         - src
         - tests
     checkMissingIterableValueType: false
     ignoreErrors:
-        -
-            # False positive
-            message: '#Instanceof between object and string\|null results in an error#'
-            path: src/Converter/Parameters/ParameterProcessor.php
-        -
-            # False positive
-            message: '#Cannot use array destructuring on callable#'
-            path: src/Converter/Proxy/Faker.php
         -
             # False positive
             message: '#Cannot call method [a-zA-Z]+\(\) on Smile\\GdprDump\\Database\\Metadata\\Definition\\Constraint\\ForeignKey#'

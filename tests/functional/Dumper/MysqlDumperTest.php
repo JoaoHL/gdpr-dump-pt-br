@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Smile\GdprDump\Tests\Functional\Dumper;
 
-use Smile\GdprDump\Config\Config;
+use Smile\GdprDump\Config\ConfigInterface;
 use Smile\GdprDump\Dumper\MysqlDumper;
 use Smile\GdprDump\Faker\FakerService;
 use Smile\GdprDump\Tests\Functional\TestCase;
@@ -55,8 +55,6 @@ class MysqlDumperTest extends TestCase
 
     /**
      * Assert that the dump file contents match the dump configuration file.
-     *
-     * @param bool $filterPropagationEnabled
      */
     private function assertDumpIsValid(bool $filterPropagationEnabled = true): void
     {
@@ -130,14 +128,10 @@ class MysqlDumperTest extends TestCase
 
     /**
      * Create the config object.
-     *
-     * @return Config
      */
-    private function createConfig(): Config
+    private function createConfig(): ConfigInterface
     {
-        /** @var Config $config */
-        $config = $this->getContainer()->get('dumper.config');
-
+        $config = clone $this->getConfig();
         $dumpParams = $config->get('dump');
         $dumpParams['output'] = $this->dumpFile;
         $config->set('dump', $dumpParams);
@@ -147,8 +141,6 @@ class MysqlDumperTest extends TestCase
 
     /**
      * Create a SQL dumper object.
-     *
-     * @return MysqlDumper
      */
     private function createDumper(): MysqlDumper
     {

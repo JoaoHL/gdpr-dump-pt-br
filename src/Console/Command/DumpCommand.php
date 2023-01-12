@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Smile\GdprDump\Console\Command;
 
 use Exception;
+use Smile\GdprDump\Config\Compiler\CompilerInterface;
+use Smile\GdprDump\Config\Config;
 use Smile\GdprDump\Config\ConfigException;
 use Smile\GdprDump\Config\ConfigInterface;
 use Smile\GdprDump\Config\Loader\ConfigLoaderInterface;
@@ -12,6 +14,7 @@ use Smile\GdprDump\Config\Validator\ValidationResultInterface;
 use Smile\GdprDump\Config\Validator\ValidatorInterface;
 use Smile\GdprDump\Dumper\DumperInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
@@ -20,27 +23,12 @@ use Symfony\Component\Console\Question\Question;
 
 class DumpCommand extends Command
 {
-    private DumperInterface $dumper;
-    private ConfigInterface $config;
-    private ConfigLoaderInterface $configLoader;
-    private ValidatorInterface $validator;
-
-    /**
-     * @param DumperInterface $dumper
-     * @param ConfigInterface $config
-     * @param ConfigLoaderInterface $configLoader
-     * @param ValidatorInterface $validator
-     */
     public function __construct(
-        DumperInterface $dumper,
-        ConfigInterface $config,
-        ConfigLoaderInterface $configLoader,
-        ValidatorInterface $validator
+        private DumperInterface $dumper,
+        private ConfigLoaderInterface $configLoader,
+        private ValidatorInterface $validator,
+        private CompilerInterface $compiler
     ) {
-        $this->dumper = $dumper;
-        $this->config = $config;
-        $this->configLoader = $configLoader;
-        $this->validator = $validator;
         parent::__construct();
     }
 
@@ -65,23 +53,23 @@ class DumpCommand extends Command
     {
         try {
             // Load the config
-            $this->loadConfig($input);
+            $config = $this->loadConfig($input);
 
             // Validate the config data
-            $result = $this->validator->validate($this->config->toArray());
+            $result = $this->validator->validate($config->toArray());
             if (!$result->isValid()) {
                 $this->outputValidationResult($result, $output);
                 return 1;
             }
 
             // Prompt for the password if not defined
-            $database = $this->config->get('database', []);
+            $database = $config->get('database', []);
             if (!array_key_exists('password', $database)) {
                 $database['password'] = $this->promptPassword($input, $output);
-                $this->config->set('database', $database);
+                $config->set('database', $database);
             }
 
-            $this->dumper->dump($this->config);
+            $this->dumper->dump($config);
         } catch (Exception $e) {
             if ($output->isVerbose()) {
                 throw $e;
@@ -97,30 +85,30 @@ class DumpCommand extends Command
     /**
      * Load the dump config.
      *
-     * @param InputInterface $input
      * @throws ConfigException
      */
-    private function loadConfig(InputInterface $input): void
+    private function loadConfig(InputInterface $input): ConfigInterface
     {
-        // Load the config file(s)
-        $configFiles = $input->getArgument('config_file');
+        $config = new Config();
 
-        foreach ($configFiles as $configFile) {
+        // Load config files
+        $this->configLoader->setConfig($config);
+        foreach ($input->getArgument('config_file') as $configFile) {
             $this->configLoader->load($configFile);
         }
 
-        $this->config->compile();
+        // Compile the config
+        $this->compiler->compile($config);
+
+        return $config;
     }
 
     /**
      * Display a password prompt, and return the user input.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return string
      */
     private function promptPassword(InputInterface $input, OutputInterface $output): string
     {
+        /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
         $question = new Question('Enter database password: ', '');
         $question->setHidden(true);
@@ -131,9 +119,6 @@ class DumpCommand extends Command
 
     /**
      * Display the validation result.
-     *
-     * @param ValidationResultInterface $result
-     * @param OutputInterface $output
      */
     private function outputValidationResult(ValidationResultInterface $result, OutputInterface $output): void
     {
@@ -146,9 +131,6 @@ class DumpCommand extends Command
 
     /**
      * Get the error output.
-     *
-     * @param OutputInterface $output
-     * @return OutputInterface
      */
     private function getErrorOutput(OutputInterface $output): OutputInterface
     {

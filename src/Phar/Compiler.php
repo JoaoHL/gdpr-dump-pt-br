@@ -16,11 +16,6 @@ class Compiler
     private string $basePath;
 
     /**
-     * @var MinifierInterface[]
-     */
-    private iterable $minifiers;
-
-    /**
      * @var string[]
      */
     private array $locales = [];
@@ -28,17 +23,14 @@ class Compiler
     /**
      * @param MinifierInterface[] $minifiers
      */
-    public function __construct(iterable $minifiers = [])
+    public function __construct(private iterable $minifiers = [])
     {
-        $this->minifiers = $minifiers;
         $this->basePath = dirname(__DIR__, 2);
     }
 
     /**
      * Set the Faker locales to include.
      *
-     * @param array $locales
-     * @return $this
      * @throws UnexpectedValueException
      */
     public function setLocales(array $locales): self
@@ -57,7 +49,6 @@ class Compiler
     /**
      * Generate a phar file.
      *
-     * @param string $fileName
      * @throws RuntimeException
      */
     public function compile(string $fileName): void
@@ -84,7 +75,7 @@ class Compiler
     /**
      * Add files to the phar file.
      *
-     * @param Phar $phar
+     * @throws RuntimeException
      */
     private function addFiles(Phar $phar): void
     {
@@ -129,9 +120,6 @@ class Compiler
 
     /**
      * Get the relative path to the file.
-     *
-     * @param SplFileInfo $file
-     * @return string
      */
     private function getRelativeFilePath(SplFileInfo $file): string
     {
@@ -148,9 +136,7 @@ class Compiler
     /**
      * Read and minify the contents of a file.
      *
-     * @param string $fileName
-     * @param string|null $extension
-     * @return string
+     * @throws RuntimeException
      */
     private function parseFile(string $fileName, ?string $extension = null): string
     {
@@ -175,8 +161,6 @@ class Compiler
 
     /**
      * Get the phar stub.
-     *
-     * @return string
      */
     private function getStub(): string
     {

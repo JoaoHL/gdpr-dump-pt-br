@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2023-01-10
+[4.0.0]: https://github.com/Smile-SA/gdpr-dump/compare/3.1.1...4.0.0
+
+- Set minimum PHP version to 8.1
+- Replace `ifsnop/mysqldump-php` package with `druidfi/mysqldump-php`
+
 ## [3.1.1] - 2022-12-13
 [3.1.1]: https://github.com/Smile-SA/gdpr-dump/compare/3.1.0...3.1.1
 

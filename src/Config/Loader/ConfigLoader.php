@@ -12,27 +12,16 @@ use Smile\GdprDump\Config\Parser\ParserInterface;
 class ConfigLoader implements ConfigLoaderInterface
 {
     private ConfigInterface $config;
-    private ParserInterface $parser;
-    private FileLocatorInterface $fileLocator;
 
     /**
      * @var string[]
      */
     private array $loadedTemplates = [];
 
-    /**
-     * @param ConfigInterface $config
-     * @param ParserInterface $parser
-     * @param FileLocatorInterface $fileLocator
-     */
     public function __construct(
-        ConfigInterface $config,
-        ParserInterface $parser,
-        FileLocatorInterface $fileLocator
+        private ParserInterface $parser,
+        private FileLocatorInterface $fileLocator
     ) {
-        $this->config = $config;
-        $this->parser = $parser;
-        $this->fileLocator = $fileLocator;
     }
 
     /**
@@ -40,14 +29,27 @@ class ConfigLoader implements ConfigLoaderInterface
      */
     public function load(string $fileName): void
     {
+        if (!isset($this->config)) {
+            throw new ConfigException('The configuration object must be set.');
+        }
+
         $fileName = $this->fileLocator->locate($fileName);
         $this->loadFile($fileName);
     }
 
     /**
+     * @inheritdoc
+     */
+    public function setConfig(ConfigInterface $config): self
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
+    /**
      * Load a configuration file.
      *
-     * @param string $fileName
      * @throws ConfigException
      */
     private function loadFile(string $fileName): void
@@ -81,7 +83,6 @@ class ConfigLoader implements ConfigLoaderInterface
      * Load parent config files.
      *
      * @param string[] $fileNames
-     * @param string $currentDirectory
      * @throws ConfigException
      */
     private function loadParentFiles(array $fileNames, string $currentDirectory): void

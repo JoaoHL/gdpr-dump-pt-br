@@ -27,10 +27,6 @@ class ConverterResolver
 
     /**
      * Add a path.
-     *
-     * @param string $namespace
-     * @param string $path
-     * @return $this
      */
     public function addPath(string $namespace, string $path): self
     {
@@ -42,13 +38,11 @@ class ConverterResolver
     /**
      * Get a converter class name by converter name.
      *
-     * @param string $name
-     * @return string
      * @throws RuntimeException
      */
     public function getClassName(string $name): string
     {
-        if (strpos($name, '\\') !== false) {
+        if (str_contains($name, '\\')) {
             return $name;
         }
 
@@ -70,8 +64,7 @@ class ConverterResolver
     /**
      * Initialize the converter name <-> class name array.
      *
-     * @return array
-     * @throws ReflectionException
+     * @throws ReflectionException|RuntimeException
      */
     private function resolveClassNames(): array
     {
@@ -89,12 +82,7 @@ class ConverterResolver
      * Find converter class names that reside in the specified directory,
      * e.g. `['unique' => 'Smile\GdprDump\Data\Converter\Proxy\Unique', ...]`.
      *
-     * @param string $namespace
-     * @param string $directory
-     * @param string $baseDirectory
-     * @return array
-     * @throws ReflectionException
-     * @throws RuntimeException
+     * @throws ReflectionException|RuntimeException
      */
     private function findClassNames(string $namespace, string $directory, string $baseDirectory = ''): array
     {

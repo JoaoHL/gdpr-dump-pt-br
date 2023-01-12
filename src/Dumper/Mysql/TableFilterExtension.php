@@ -35,8 +35,6 @@ class TableFilterExtension implements ExtensionInterface
 
     /**
      * Get the filters to apply on each table.
-     *
-     * @return array
      */
     private function buildTablesWhere(): array
     {
@@ -109,12 +107,6 @@ class TableFilterExtension implements ExtensionInterface
      * Internal parameters:
      * - $processedTables: used to detect cyclic dependencies and stop the recursion
      * - $subQueryCount: used to generate unique query names
-     *
-     * @param string $tableName
-     * @param QueryBuilder $queryBuilder
-     * @param array $dependencies
-     * @param array $processedTables
-     * @param int $subQueryCount
      */
     private function addDependentFilter(
         string $tableName,
@@ -173,9 +165,6 @@ class TableFilterExtension implements ExtensionInterface
 
     /**
      * Create a query builder that applies the configuration of the specified table.
-     *
-     * @param string $tableName
-     * @return QueryBuilder
      */
     private function createQueryBuilder(string $tableName): QueryBuilder
     {
@@ -198,8 +187,6 @@ class TableFilterExtension implements ExtensionInterface
     /**
      * Apply a table configuration to a query builder.
      *
-     * @param QueryBuilder $queryBuilder
-     * @param TableConfig $tableConfig
      * @throws RuntimeException
      */
     private function applyTableConfigToQueryBuilder(QueryBuilder $queryBuilder, TableConfig $tableConfig): void
@@ -241,10 +228,6 @@ class TableFilterExtension implements ExtensionInterface
 
     /**
      * Get the SQL query that represents a list of columns.
-     *
-     * @param array $columns
-     * @param bool $enclose
-     * @return string
      */
     private function getColumnsSql(array $columns, bool $enclose = false): string
     {
@@ -264,9 +247,6 @@ class TableFilterExtension implements ExtensionInterface
 
     /**
      * Get the query as SQL, starting from the WHERE clause.
-     *
-     * @param QueryBuilder $queryBuilder
-     * @return string
      */
     public function getWhereSql(QueryBuilder $queryBuilder): string
     {
@@ -284,10 +264,9 @@ class TableFilterExtension implements ExtensionInterface
     /**
      * Get a filter value.
      *
-     * @param Filter $filter
-     * @return mixed
+     * @throws UnexpectedValueException
      */
-    private function getFilterValue(Filter $filter)
+    private function getFilterValue(Filter $filter): mixed
     {
         $value = $filter->getValue();
 
@@ -306,10 +285,9 @@ class TableFilterExtension implements ExtensionInterface
      * Quote a value so that it can be safely injected in a SQL query
      * (we can't use query params because Mysqldump library doesn't allow it).
      *
-     * @param mixed $value
-     * @return mixed
+     * @throws UnexpectedValueException
      */
-    private function quoteValue($value)
+    private function quoteValue(mixed $value): mixed
     {
         if ($value !== null && !is_scalar($value)) {
             throw new UnexpectedValueException('Non-scalar values can not be used in filters.');
@@ -320,7 +298,7 @@ class TableFilterExtension implements ExtensionInterface
         }
 
         if (is_string($value)) {
-            return strpos($value, 'expr:') === 0 ? ltrim(substr($value, 5)) : $this->connection->quote($value);
+            return str_starts_with($value, 'expr:') ? ltrim(substr($value, 5)) : $this->connection->quote($value);
         }
 
         return $value;
